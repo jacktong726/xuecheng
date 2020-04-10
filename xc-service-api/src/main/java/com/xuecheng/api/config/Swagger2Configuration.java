@@ -10,7 +10,9 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-//
+/**
+ * 自動生成swagger文檔, 啟動服務後, 可以通過http://localhost:xxxx/swagger-ui.html查看
+ * */
 @Configuration
 @EnableSwagger2
 public class Swagger2Configuration {
