@@ -7,6 +7,7 @@ import com.xuecheng.framework.model.response.ResultCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -29,6 +30,7 @@ public class CustomExceptionHandler {
 
     static {
         builder.put(HttpMessageNotReadableException.class, CommonCode.INVALIDPARAM);    //request body不合法異常
+        builder.put(HttpRequestMethodNotSupportedException.class,CommonCode.INVALIDMETHOD); //請求方式錯誤
     }
 
     @ExceptionHandler(CustomException.class)    //只有CustomException被處理

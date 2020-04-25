@@ -90,10 +90,6 @@ public class CmsPageService {
         }
 */
         //統一管理exception後
-        //如果傳回的cmspage數據的為空
-        if (cmsPage==null){
-            throw new CustomException(CmsCode.CMS_GENERATEHTML_DATAISNULL);
-        }
         //如果資料庫中已存在同一cmspage
         if (cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath(
                cmsPage.getPageName(),cmsPage.getSiteId(),cmsPage.getPageWebPath()
