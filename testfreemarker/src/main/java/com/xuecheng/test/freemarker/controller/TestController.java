@@ -1,15 +1,31 @@
 package com.xuecheng.test.freemarker.controller;
 
 import com.xuecheng.test.freemarker.model.Student;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
 @RequestMapping("/freemarker")
 @Controller
 public class TestController {
+
+    @Autowired
+    RestTemplate restTemplate;
+
+    //使用restTemplate讀取數據模型, 結合ftl模版輸出靜態頁面
+    @RequestMapping(value = "/banner",method = RequestMethod.GET)
+    public String banner(Map<String, Object> map){
+        ResponseEntity<Map> forEntity =
+                restTemplate.getForEntity("http://localhost:31001/cms/config/5a791725dd573c3574ee333f",
+                        Map.class);
+        map.putAll(forEntity.getBody());
+        return "index_banner";
+    }
 
     @RequestMapping(value = "/test1", method = RequestMethod.GET)
     public String test1(Map<String, Object> map) {
