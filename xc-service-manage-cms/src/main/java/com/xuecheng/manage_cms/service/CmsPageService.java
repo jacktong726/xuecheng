@@ -191,6 +191,7 @@ public class CmsPageService {
     }
 
     //页面静态化
+    //知識點: 使用freemarker的Configuration和StringTemplateLoader, 結合數據模型和template生成頁面html
     public String generateHtml(String inputTemplate, Map model) {
         Configuration configuration=new Configuration(Configuration.getVersion());
         //模板加载器
@@ -211,6 +212,7 @@ public class CmsPageService {
     }
 
     //获取页面模板
+    //知識點: 使用gridFsTemplate和gridFSBucket返回mongodb中的頁面template文件
     public String getTemplateByPageId(String pageId) {
         Optional<CmsPage> cmsPage = cmsPageRepository.findById(pageId);
         if (cmsPage.isPresent()){
@@ -236,6 +238,7 @@ public class CmsPageService {
     }
 
     //获取页面模型数据
+    //知識點: 使用restTemplate由url請求並返回json數據
     public Map getModelByPageId(String pageId) {
         Optional<CmsPage> cmsPage = cmsPageRepository.findById(pageId);
         if (cmsPage.isPresent()){

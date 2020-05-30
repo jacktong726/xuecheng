@@ -1,0 +1,11 @@
+server:
+  port: 44001
+spring:
+  application:
+    name: test-rabbitmq-consumer
+  rabbitmq:
+    host: centos7.jacktong726.com
+    port: 5672
+    username: guest
+    password: guest
+    virtualHost: /

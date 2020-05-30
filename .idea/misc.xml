@@ -7,6 +7,8 @@
         <option value="$PROJECT_DIR$/xc-framework-parent/pom.xml" />
         <option value="$PROJECT_DIR$/xc-framework-common/pom.xml" />
         <option value="$PROJECT_DIR$/testfreemarker/pom.xml" />
+        <option value="$PROJECT_DIR$/testRabbitmqProducer/pom.xml" />
+        <option value="$PROJECT_DIR$/testRabbitmqConsumer/pom.xml" />
       </list>
     </option>
   </component>
