@@ -1,5 +1,6 @@
 package com.xuecheng.manage_cms.service;
 
+import com.alibaba.fastjson.JSON;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.model.GridFSFile;
@@ -10,6 +11,7 @@ import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.exception.CustomException;
 import com.xuecheng.framework.model.response.*;
+import com.xuecheng.manage_cms.config.RabbitmqConfig;
 import com.xuecheng.manage_cms.dao.CmsConfigRepository;
 import com.xuecheng.manage_cms.dao.CmsPageRepository;
 import com.xuecheng.manage_cms.dao.CmsTemplateRepository;
@@ -19,6 +21,8 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -58,6 +62,10 @@ public class CmsPageService {
     GridFsTemplate gridFsTemplate;
     @Autowired
     GridFSBucket gridFSBucket;
+
+    //消息中間件
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     /**
      * 分頁查詢
@@ -250,5 +258,46 @@ public class CmsPageService {
             return forEntity.getBody();
         }
         return null;
+    }
+
+    //發布頁面
+    public ResponseResult post(String pageId) {
+        //生成頁面html代碼
+        String pageHtml = getPageHtml(pageId);
+        //保存html代碼
+        CmsPage cmsPage=saveHtml(pageId,pageHtml);
+        //向rabbitmq發布信息
+        sendPostMsg(pageId);
+        return new ResponseResult(CommonCode.SUCCESS);
+    }
+
+    private void sendPostMsg(String pageId) {
+        Optional<CmsPage> optional = cmsPageRepository.findById(pageId);
+        if (!optional.isPresent()){
+            throw new CustomException(CmsCode.CMS_PAGE_NOTEXISTS);
+        }
+        CmsPage cmsPage = optional.get();
+        Map<String,String> map=new HashMap();
+        map.put("pageId",pageId);
+        String msg = JSON.toJSONString(map);
+        rabbitTemplate.convertAndSend(RabbitmqConfig.EX_ROUTING_CMS_POSTPAGE,cmsPage.getSiteId(),msg);
+    }
+
+    private CmsPage saveHtml(String pageId,String pageHtml) {
+        Optional<CmsPage> optional = cmsPageRepository.findById(pageId);
+        if (!optional.isPresent()){
+            throw new CustomException(CmsCode.CMS_PAGE_NOTEXISTS);
+        }
+        CmsPage cmsPage = optional.get();
+        InputStream inputStream =null;
+        try {
+            inputStream = IOUtils.toInputStream(pageHtml, "utf-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ObjectId objectId = gridFsTemplate.store(inputStream, cmsPage.getPageName());
+        cmsPage.setHtmlFileId(objectId.toString());
+        cmsPageRepository.save(cmsPage);
+        return cmsPage;
     }
 }
