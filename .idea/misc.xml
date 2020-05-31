@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/testfreemarker/pom.xml" />
         <option value="$PROJECT_DIR$/testRabbitmqProducer/pom.xml" />
         <option value="$PROJECT_DIR$/testRabbitmqConsumer/pom.xml" />
+        <option value="$PROJECT_DIR$/xc-service-manage-cms-client/pom.xml" />
       </list>
     </option>
   </component>
