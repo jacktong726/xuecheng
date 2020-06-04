@@ -1,13 +1,20 @@
 package com.xuecheng.manage_course.service;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.Teachplan;
+import com.xuecheng.framework.domain.course.ext.CourseInfo;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
+import com.xuecheng.framework.domain.course.request.CourseListRequest;
 import com.xuecheng.framework.domain.course.response.CourseCode;
 import com.xuecheng.framework.exception.CustomException;
 import com.xuecheng.framework.model.response.CommonCode;
+import com.xuecheng.framework.model.response.QueryResponseResult;
+import com.xuecheng.framework.model.response.QueryResult;
 import com.xuecheng.framework.model.response.ResponseResult;
 import com.xuecheng.manage_course.dao.CourseBaseRepository;
+import com.xuecheng.manage_course.dao.CourseMapper;
 import com.xuecheng.manage_course.dao.TeachPlanMapper;
 import com.xuecheng.manage_course.dao.TeachPlanRepository;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +35,9 @@ public class CourseService {
 
     @Autowired
     CourseBaseRepository courseBaseRepository;
+
+    @Autowired
+    CourseMapper courseMapper;
 
     public TeachplanNode findTeachPlanList(String courseId) {
         return teachPlanMapper.findTeachPlanList(courseId);
@@ -86,5 +96,14 @@ public class CourseService {
         //如果找到一級(根)節點,就返回
         Teachplan teachplan = list.get(0);
         return teachplan;
+    }
+
+    public QueryResponseResult findCoursePage(int page, int size,CourseListRequest courseListRequest){
+        PageHelper.startPage(page,size);
+        Page<CourseInfo> courseListPage = courseMapper.findCourseListPage(null);
+        QueryResult queryResult = new QueryResult<CourseInfo>();
+        queryResult.setList(courseListPage.getResult());
+        queryResult.setTotal(courseListPage.getTotal());
+        return new QueryResponseResult(CommonCode.SUCCESS,queryResult);
     }
 }
