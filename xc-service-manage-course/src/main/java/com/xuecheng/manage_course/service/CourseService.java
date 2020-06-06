@@ -106,4 +106,14 @@ public class CourseService {
         queryResult.setTotal(courseListPage.getTotal());
         return new QueryResponseResult(CommonCode.SUCCESS,queryResult);
     }
+
+    @Transactional
+    public ResponseResult addCourseBase(CourseBase courseBase){
+        if (courseBase==null){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        courseBase.setStatus("202001");
+        courseBaseRepository.save(courseBase);
+        return new ResponseResult(CommonCode.SUCCESS);
+    }
 }

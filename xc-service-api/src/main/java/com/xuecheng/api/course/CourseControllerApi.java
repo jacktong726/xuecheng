@@ -18,6 +18,9 @@ public interface CourseControllerApi {
     @ApiOperation("新增教學計劃")
     ResponseResult addTeachPlan(Teachplan teachplan);
 
+    @ApiOperation("新增課程")
+    ResponseResult addCourseBase(CourseBase courseBase);
+
     @ApiOperation("分頁查詢課程列表")
     QueryResponseResult findCoursePage(int page, int size,CourseListRequest courseListRequest);
 
