@@ -5,12 +5,15 @@
     <resultMap id="categoryMap" type="com.xuecheng.framework.domain.course.ext.CategoryNode">
         <id property="id" column="one_id"/>
         <result property="name" column="one_name"/>
+        <result property="label" column="one_label"/>
         <collection property="children" ofType="com.xuecheng.framework.domain.course.ext.CategoryNode">
             <id property="id" column="two_id"/>
             <result property="name" column="two_name"/>
+            <result property="label" column="two_label"/>
             <collection property="children" ofType="com.xuecheng.framework.domain.course.ext.CategoryNode">
                 <id property="id" column="three_id"/>
                 <result property="name" column="three_name"/>
+                <result property="label" column="three_label"/>
             </collection>
         </collection>
     </resultMap>
@@ -19,10 +22,13 @@
         SELECT
           a.id one_id,
           a.name one_name,
+          a.label one_label,
           b.id two_id,
           b.name two_name,
+          b.label two_label,
           c.id three_id,
-          c.name three_name
+          c.name three_name,
+          c.label three_label
         FROM
           category a
           LEFT JOIN category b

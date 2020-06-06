@@ -2,6 +2,7 @@ package com.xuecheng.manage_course.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.Teachplan;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
@@ -13,11 +14,13 @@ import com.xuecheng.framework.model.response.CommonCode;
 import com.xuecheng.framework.model.response.QueryResponseResult;
 import com.xuecheng.framework.model.response.QueryResult;
 import com.xuecheng.framework.model.response.ResponseResult;
+import com.xuecheng.framework.utils.BeanUtilsExt;
 import com.xuecheng.manage_course.dao.CourseBaseRepository;
 import com.xuecheng.manage_course.dao.CourseMapper;
 import com.xuecheng.manage_course.dao.TeachPlanMapper;
 import com.xuecheng.manage_course.dao.TeachPlanRepository;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,5 +118,28 @@ public class CourseService {
         courseBase.setStatus("202001");
         courseBaseRepository.save(courseBase);
         return new ResponseResult(CommonCode.SUCCESS);
+    }
+
+    public CourseBase findCourseBaseById(String id){
+        if (StringUtils.isEmpty(id)){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        Optional<CourseBase> optional = courseBaseRepository.findById(id);
+        return optional.orElse(null);
+    }
+
+    @Transactional
+    public ResponseResult updateCourseBase(String id,CourseBase courseBase){
+        if (StringUtils.isEmpty(id)||courseBase==null){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        Optional<CourseBase> optional = courseBaseRepository.findById(id);
+        if (optional.isPresent()){
+            CourseBase courseBaseOld = optional.get();
+            BeanUtilsExt.copyPropertiesIgnoreNull(courseBase,courseBaseOld);
+            courseBaseRepository.save(courseBaseOld);
+            return new ResponseResult(CommonCode.SUCCESS);
+        }
+        return null;
     }
 }

@@ -21,6 +21,12 @@ public interface CourseControllerApi {
     @ApiOperation("新增課程")
     ResponseResult addCourseBase(CourseBase courseBase);
 
+    @ApiOperation("修改課程")
+    ResponseResult updateCourseBase(String id,CourseBase courseBase);
+
+    @ApiOperation("按id查詢課程")
+    CourseBase findCourseBaseById(String id);
+
     @ApiOperation("分頁查詢課程列表")
     QueryResponseResult findCoursePage(int page, int size,CourseListRequest courseListRequest);
 
