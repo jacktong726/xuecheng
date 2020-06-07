@@ -4,6 +4,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.course.CourseBase;
+import com.xuecheng.framework.domain.course.CourseMarket;
 import com.xuecheng.framework.domain.course.Teachplan;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
@@ -15,10 +16,7 @@ import com.xuecheng.framework.model.response.QueryResponseResult;
 import com.xuecheng.framework.model.response.QueryResult;
 import com.xuecheng.framework.model.response.ResponseResult;
 import com.xuecheng.framework.utils.BeanUtilsExt;
-import com.xuecheng.manage_course.dao.CourseBaseRepository;
-import com.xuecheng.manage_course.dao.CourseMapper;
-import com.xuecheng.manage_course.dao.TeachPlanMapper;
-import com.xuecheng.manage_course.dao.TeachPlanRepository;
+import com.xuecheng.manage_course.dao.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +39,9 @@ public class CourseService {
 
     @Autowired
     CourseMapper courseMapper;
+
+    @Autowired
+    CourseMarketRepository courseMarketRepository;
 
     public TeachplanNode findTeachPlanList(String courseId) {
         return teachPlanMapper.findTeachPlanList(courseId);
@@ -141,5 +142,30 @@ public class CourseService {
             return new ResponseResult(CommonCode.SUCCESS);
         }
         return null;
+    }
+
+    public CourseMarket getCourseMarketById(String id){
+        if (StringUtils.isEmpty(id)){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        Optional<CourseMarket> optional = courseMarketRepository.findById(id);
+        if (optional.isPresent()){
+            return optional.get();
+        }
+        return null;
+    }
+
+    public ResponseResult updateCourseMarket(String id, CourseMarket courseMarket){
+        if (StringUtils.isEmpty(id)||courseMarket==null){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        CourseMarket courseMarketOld = getCourseMarketById(id);
+        if (courseMarketOld==null){
+            courseMarketRepository.save(courseMarket);
+        }else{
+            BeanUtilsExt.copyPropertiesIgnoreNull(courseMarket,courseMarketOld);
+            courseMarketRepository.save(courseMarketOld);
+        }
+        return new ResponseResult(CommonCode.SUCCESS);
     }
 }
