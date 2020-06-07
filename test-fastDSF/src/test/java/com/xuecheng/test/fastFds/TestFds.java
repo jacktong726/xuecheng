@@ -56,7 +56,7 @@ public class TestFds {
         TrackerServer trackerServer = tracker.getConnection();
         StorageServer storageServer = null;
         StorageClient storageClient = new StorageClient(trackerServer,storageServer);
-        FileInfo fileInfo = storageClient.query_file_info("group1","M00/00/00/wKgAFF7chGaAdQAxAABxhgtZBdM002.bmp");
+        FileInfo fileInfo = storageClient.query_file_info("group1","M00/00/00/wKgAFF7cr3CAN-sMAABxhgtZBdM495.bmp");
         System.out.println(fileInfo);
     }
 
@@ -68,7 +68,7 @@ public class TestFds {
         TrackerServer trackerServer = tracker.getConnection();
         StorageServer storageServer = null;
         StorageClient1 storageClient1 = new StorageClient1(trackerServer,storageServer);
-        byte[] result =storageClient1.download_file1("group1/M00/00/00/wKgAFF7chGaAdQAxAABxhgtZBdM002.bmp");
+        byte[] result =storageClient1.download_file1("group1/M00/00/00/wKgAFF7cr3CAN-sMAABxhgtZBdM495.bmp");
         File file = new File("f:/a.bmp");
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         fileOutputStream.write(result);

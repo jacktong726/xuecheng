@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.CourseMarket;
+import com.xuecheng.framework.domain.course.CoursePic;
 import com.xuecheng.framework.domain.course.Teachplan;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
@@ -22,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +44,9 @@ public class CourseService {
 
     @Autowired
     CourseMarketRepository courseMarketRepository;
+
+    @Autowired
+    CoursePicRepository coursePicRepository;
 
     public TeachplanNode findTeachPlanList(String courseId) {
         return teachPlanMapper.findTeachPlanList(courseId);
@@ -167,5 +172,31 @@ public class CourseService {
             courseMarketRepository.save(courseMarketOld);
         }
         return new ResponseResult(CommonCode.SUCCESS);
+    }
+
+    public ResponseResult addCoursePic(String courseId, String pic){
+        Optional<CoursePic> optional = coursePicRepository.findById(courseId);
+        if (optional.isPresent()){
+            CoursePic coursePicOld = optional.get();
+            coursePicOld.setPic(pic);
+            coursePicRepository.save(coursePicOld);
+        }else{
+            CoursePic coursePic = new CoursePic();
+            coursePic.setCourseid(courseId);
+            coursePic.setPic(pic);
+            coursePicRepository.save(coursePic);
+        }
+        return new ResponseResult(CommonCode.SUCCESS);
+    }
+
+    public CoursePic findCoursePic(String courseId){
+        if (StringUtils.isEmpty(courseId)){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        Optional<CoursePic> optional = coursePicRepository.findById(courseId);
+        if (optional.isPresent()){
+            return optional.get();
+        }
+        return null;
     }
 }
