@@ -22,20 +22,20 @@ public class TestFds {
             ClientGlobal.initByProperties("config/fastdfs-client.properties");
             System.out.println("network_timeout=" + ClientGlobal.g_network_timeout + "ms");
             System.out.println("charset=" + ClientGlobal.g_charset);
-//创建客户端
+            //创建客户端
             TrackerClient tc = new TrackerClient();
-//连接tracker Server
+            //连接tracker Server
             TrackerServer ts = tc.getConnection();
             if (ts == null) {
                 System.out.println("getConnection return null");
                 return;
             }
-//获取一个storage server
+            //获取一个storage server
             StorageServer ss = tc.getStoreStorage(ts);
             if (ss == null) {
                 System.out.println("getStoreStorage return null");
             }
-//创建一个storage存储客户端
+            //创建一个storage存储客户端
             StorageClient1 sc1 = new StorageClient1(ts, ss);
             NameValuePair[] meta_list = null; //new NameValuePair[0];
             String item = "f:\\\\1.bmp";
