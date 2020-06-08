@@ -160,6 +160,7 @@ public class CourseService {
         return null;
     }
 
+    @Transactional
     public ResponseResult updateCourseMarket(String id, CourseMarket courseMarket){
         if (StringUtils.isEmpty(id)||courseMarket==null){
             throw new CustomException(CommonCode.INVALIDPARAM);
@@ -174,6 +175,7 @@ public class CourseService {
         return new ResponseResult(CommonCode.SUCCESS);
     }
 
+    @Transactional
     public ResponseResult addCoursePic(String courseId, String pic){
         Optional<CoursePic> optional = coursePicRepository.findById(courseId);
         if (optional.isPresent()){
@@ -198,5 +200,17 @@ public class CourseService {
             return optional.get();
         }
         return null;
+    }
+
+    @Transactional
+    public ResponseResult deletePicByCourseId(String courseId){
+        if (StringUtils.isEmpty(courseId)){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        long result = coursePicRepository.deleteByCourseid(courseId);   //返回1表示成功
+        if (result>0){
+            return new ResponseResult(CommonCode.SUCCESS);
+        }
+        return new ResponseResult(CommonCode.FAIL);
     }
 }
