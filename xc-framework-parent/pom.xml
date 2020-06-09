@@ -17,6 +17,7 @@
         <module>../testfreemarker</module>
         <module>../testRabbitmqConsumer</module>
         <module>../testRabbitmqProducer</module>
+        <module>../test-RibbonFeign</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

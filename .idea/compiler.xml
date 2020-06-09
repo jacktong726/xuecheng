@@ -7,19 +7,20 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="testRabbitmqProducer" />
-        <module name="xc-framework-common" />
         <module name="testfreemarker" />
-        <module name="xc-framework-model" />
-        <module name="testRabbitmqConsumer" />
-        <module name="xc-service-manage-course" />
         <module name="xc-framework-utils" />
-        <module name="test-fastDSF" />
-        <module name="xc-service-manage-cms-client" />
-        <module name="xc-govern-center" />
-        <module name="xc-service-base-filesystem" />
+        <module name="xc-framework-model" />
+        <module name="xc-service-manage-course" />
         <module name="xc-service-api" />
+        <module name="xc-service-manage-cms-client" />
+        <module name="xc-service-base-filesystem" />
+        <module name="test-fastDSF" />
+        <module name="xc-framework-common" />
+        <module name="xc-govern-center" />
+        <module name="test-RibbonFeign" />
+        <module name="testRabbitmqConsumer" />
         <module name="xc-service-manage-cms" />
+        <module name="testRabbitmqProducer" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -28,6 +29,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="test-RibbonFeign" options="-parameters" />
       <module name="test-fastDSF" options="-parameters" />
       <module name="testRabbitmqConsumer" options="-parameters" />
       <module name="testRabbitmqProducer" options="-parameters" />
