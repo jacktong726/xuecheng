@@ -26,6 +26,15 @@ public class TestController {
         map.putAll(forEntity.getBody());
         return "index_banner";
     }
+    //使用restTemplate讀取數據模型, 結合ftl模版輸出靜態頁面
+    @RequestMapping(value = "/courseTemplate",method = RequestMethod.GET)
+    public String courseTemplate(Map<String, Object> map){
+        ResponseEntity<Map> forEntity =
+                restTemplate.getForEntity("http://localhost:31200/course/courseview/402880ee7288abbb017288ac68970000",
+                        Map.class);
+        map.putAll(forEntity.getBody());
+        return "course";
+    }
 
     @RequestMapping(value = "/test1", method = RequestMethod.GET)
     public String test1(Map<String, Object> map) {

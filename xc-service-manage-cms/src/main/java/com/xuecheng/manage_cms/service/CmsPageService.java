@@ -5,15 +5,19 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.xuecheng.framework.domain.cms.CmsPage;
+import com.xuecheng.framework.domain.cms.CmsSite;
 import com.xuecheng.framework.domain.cms.CmsTemplate;
 import com.xuecheng.framework.domain.cms.request.QueryPageRequest;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
+import com.xuecheng.framework.domain.cms.response.CmsPostPageResult;
+import com.xuecheng.framework.domain.course.response.CoursePublishResult;
 import com.xuecheng.framework.exception.CustomException;
 import com.xuecheng.framework.model.response.*;
 import com.xuecheng.manage_cms.config.RabbitmqConfig;
 import com.xuecheng.manage_cms.dao.CmsConfigRepository;
 import com.xuecheng.manage_cms.dao.CmsPageRepository;
+import com.xuecheng.manage_cms.dao.CmsSiteRepository;
 import com.xuecheng.manage_cms.dao.CmsTemplateRepository;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
@@ -41,6 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +57,9 @@ public class CmsPageService {
 
     @Autowired
     CmsTemplateRepository cmsTemplateRepository;
+
+    @Autowired
+    CmsSiteRepository cmsSiteRepository;
 
     //用於請求靜態頁面數據模型
     @Autowired
@@ -124,7 +132,7 @@ public class CmsPageService {
 
     }
 
-    public ResponseResult add(CmsPage cmsPage) {
+    public CmsPageResult add(CmsPage cmsPage) {
         //未統一管理exception前
 /*        if (cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath(
                 cmsPage.getPageName(),cmsPage.getSiteId(),cmsPage.getPageWebPath()
@@ -143,7 +151,18 @@ public class CmsPageService {
             throw new CustomException(CmsCode.CMS_ADDPAGE_EXISTSNAME);
         }
         cmsPageRepository.save(cmsPage);
-        return new ResponseResult(CommonCode.SUCCESS);
+        return new CmsPageResult(CommonCode.SUCCESS,cmsPage);
+    }
+
+    //添加页面，如果已存在则更新页面
+    public CmsPageResult save(CmsPage cmsPage){
+        CmsPage cmsPageOld = cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath(
+                cmsPage.getPageName(), cmsPage.getSiteId(), cmsPage.getPageWebPath());
+        if (cmsPageOld!= null) {
+            return this.update(cmsPageOld.getPageId(),cmsPage);
+        }
+        return this.add(cmsPage);
+
     }
 
     public CmsPageResult findById(String id) {
@@ -157,14 +176,14 @@ public class CmsPageService {
 
     }
 
-    public ResponseResult update(String id, CmsPage cmsPage) {
+    public CmsPageResult update(String id, CmsPage cmsPage) {
         Optional<CmsPage> optional = cmsPageRepository.findById(id);
         if (optional.isPresent()) {
             cmsPage.setPageId(id);
             cmsPageRepository.save(cmsPage);
-            return new ResponseResult(CommonCode.SUCCESS);
+            return new CmsPageResult(CommonCode.SUCCESS,cmsPage);
         } else {
-            return new ResponseResult(CommonCode.FAIL);
+            throw new CustomException(CommonCode.FAIL);
         }
     }
 
@@ -299,5 +318,37 @@ public class CmsPageService {
         cmsPage.setHtmlFileId(objectId.toString());
         cmsPageRepository.save(cmsPage);
         return cmsPage;
+    }
+    //一鍵發佈頁面
+    public CmsPostPageResult postPageQuick(CmsPage cmsPage){
+        //保存頁面到mongodb
+        CmsPageResult save = this.save(cmsPage);
+        if (!save.isSuccess()){
+            throw new CustomException(CommonCode.FAIL);
+        }
+        CmsPage saveCmsPage = save.getCmsPage();
+        String pageId = saveCmsPage.getPageId();
+
+        //頁面靜態化
+        ResponseResult responseResult = post(pageId);
+        if (!responseResult.isSuccess()){
+            throw new CustomException(CommonCode.FAIL);
+        }
+
+        //生成頁面url. 页面url=站点域名+站点webpath+页面webpath+页面名称
+        String siteId = saveCmsPage.getSiteId();
+        Optional<CmsSite> siteOptional = cmsSiteRepository.findById(siteId);
+        if (!siteOptional.isPresent()){
+            throw new CustomException(CommonCode.FAIL);
+        }
+        CmsSite cmsSite = siteOptional.get();
+        String siteDomain = cmsSite.getSiteDomain();
+        String siteWebPath = cmsSite.getSiteWebPath();
+        String pageWebPath = saveCmsPage.getPageWebPath();
+        String pageName = saveCmsPage.getPageName();
+        String pageUrl=siteDomain+siteWebPath+pageWebPath+pageName;
+
+        return  new CmsPostPageResult(CommonCode.SUCCESS,pageUrl);
+
     }
 }

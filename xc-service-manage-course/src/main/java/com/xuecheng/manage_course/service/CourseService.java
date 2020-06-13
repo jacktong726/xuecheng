@@ -2,29 +2,37 @@ package com.xuecheng.manage_course.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
+import com.xuecheng.framework.domain.cms.response.CmsPageResult;
+import com.xuecheng.framework.domain.cms.response.CmsPostPageResult;
 import com.xuecheng.framework.domain.course.CourseBase;
 import com.xuecheng.framework.domain.course.CourseMarket;
 import com.xuecheng.framework.domain.course.CoursePic;
 import com.xuecheng.framework.domain.course.Teachplan;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
+import com.xuecheng.framework.domain.course.ext.CourseView;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
 import com.xuecheng.framework.domain.course.request.CourseListRequest;
 import com.xuecheng.framework.domain.course.response.CourseCode;
+import com.xuecheng.framework.domain.course.response.CoursePublishResult;
 import com.xuecheng.framework.exception.CustomException;
 import com.xuecheng.framework.model.response.CommonCode;
 import com.xuecheng.framework.model.response.QueryResponseResult;
 import com.xuecheng.framework.model.response.QueryResult;
 import com.xuecheng.framework.model.response.ResponseResult;
 import com.xuecheng.framework.utils.BeanUtilsExt;
+import com.xuecheng.manage_course.client.CmsPageClient;
 import com.xuecheng.manage_course.dao.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +55,23 @@ public class CourseService {
 
     @Autowired
     CoursePicRepository coursePicRepository;
+
+    @Autowired
+    CmsPageClient cmsPageClient;
+
+    //讀取配置文件中的course-publish參數
+    @Value("${course-publish.dataUrlPre}")
+    private String publish_dataUrlPre;
+    @Value("${course-publish.pagePhysicalPath}")
+    private String publish_page_physicalpath;
+    @Value("${course-publish.pageWebPath}")
+    private String publish_page_webpath;
+    @Value("${course-publish.siteId}")
+    private String publish_siteId;
+    @Value("${course-publish.templateId}")
+    private String publish_templateId;
+    @Value("${course-publish.previewUrl}")
+    private String previewUrl;
 
     public TeachplanNode findTeachPlanList(String courseId) {
         return teachPlanMapper.findTeachPlanList(courseId);
@@ -212,5 +237,89 @@ public class CourseService {
             return new ResponseResult(CommonCode.SUCCESS);
         }
         return new ResponseResult(CommonCode.FAIL);
+    }
+
+    public CourseView getCourseView(String id){
+        if (StringUtils.isEmpty(id)){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        CourseView courseView = new CourseView();
+
+        Optional<CourseBase> courseBaseOptional = courseBaseRepository.findById(id);
+        if (courseBaseOptional.isPresent()){
+            courseView.setCourseBase(courseBaseOptional.get());
+        }
+
+        Optional<CourseMarket> courseMarketOptional = courseMarketRepository.findById(id);
+        if (courseMarketOptional.isPresent()){
+            courseView.setCourseMarket(courseMarketOptional.get());
+        }
+
+        Optional<CoursePic> coursePicOptional = coursePicRepository.findById(id);
+        if (coursePicOptional.isPresent()){
+            courseView.setCoursePic(coursePicOptional.get());
+        }
+
+        TeachplanNode teachPlanList = teachPlanMapper.findTeachPlanList(id);
+        if (teachPlanList!=null){
+            courseView.setTeachplanNode(teachPlanList);
+        }
+        return courseView;
+    }
+
+    public CoursePublishResult preview(String courseId){
+        CmsPage cmsPage = this.makeCmsPage(courseId);
+        CmsPageResult cmsPageResult = cmsPageClient.save(cmsPage);
+        //返回保存結果和頁面預覧url
+        if (cmsPageResult.isSuccess()){
+            String pageId = cmsPageResult.getCmsPage().getPageId();
+            return new CoursePublishResult(CommonCode.SUCCESS,previewUrl+pageId);
+        }
+        return new CoursePublishResult(CommonCode.FAIL,null);
+    }
+
+    public CmsPage makeCmsPage(String courseId){
+        //先由mysql中取得courseBase資料
+        Optional<CourseBase> optional = courseBaseRepository.findById(courseId);
+        if (!optional.isPresent()){
+            throw new CustomException(CourseCode.COURSE_GET_NOTEXISTS);
+        }
+        CourseBase courseBase = optional.get();
+        //再使用courseBase資料構建cmsPage
+        CmsPage cmsPage = new CmsPage();
+        cmsPage.setSiteId(publish_siteId);
+        cmsPage.setPageName(courseId+".html");
+        cmsPage.setPageAliase(courseBase.getName());
+        cmsPage.setPageWebPath(publish_page_webpath);
+        cmsPage.setPagePhysicalPath(publish_page_physicalpath);
+        cmsPage.setPageType("0");
+        cmsPage.setPageCreateTime(new Date());
+        cmsPage.setTemplateId(publish_templateId);
+        cmsPage.setDataUrl(publish_dataUrlPre+courseId);
+        return cmsPage;
+    }
+
+    @Transactional
+    public CoursePublishResult publish(String courseId){
+        CmsPage cmsPage = this.makeCmsPage(courseId);
+        CmsPostPageResult cmsPostPageResult = cmsPageClient.postPageQuick(cmsPage);
+        if (!cmsPostPageResult.isSuccess()){
+            throw new CustomException(CommonCode.FAIL);
+        }
+        this.changePublishStatus(courseId,"202002");
+        String pageUrl = cmsPostPageResult.getPageUrl();
+        return new CoursePublishResult(CommonCode.SUCCESS,pageUrl);
+
+    }
+
+    public CourseBase changePublishStatus(String courseId,String status){
+        Optional<CourseBase> optional = courseBaseRepository.findById(courseId);
+        if (optional.isPresent()){
+            CourseBase courseBase = optional.get();
+            courseBase.setStatus(status);
+            courseBaseRepository.save(courseBase);
+            return courseBase;
+        }
+        return null;
     }
 }

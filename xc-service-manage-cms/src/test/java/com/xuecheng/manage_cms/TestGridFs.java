@@ -43,6 +43,15 @@ public class TestGridFs {
         System.out.println(objectId);
     }
 
+    @Test
+    public void testStore2() throws FileNotFoundException {
+        File file = new File("F:\\javalesson\\javahw\\xcedu\\xcEduService\\testfreemarker\\src\\main\\resources\\templates\\course.ftl");
+        FileInputStream inputStream = new FileInputStream(file);
+        //保存模版文件内容
+        ObjectId objectId = gridFsTemplate.store(inputStream, "课程详情模板文件","");
+        System.out.println(objectId);   //5ee39477be9c7e4c88991d33
+    }
+
     //從mongodb中讀取頁面
     //步驟:
     //用_id通過gridFsTemplate查出文件的objectId(mongodb: 在fs.files中找文件信息)
