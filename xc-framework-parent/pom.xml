@@ -18,6 +18,7 @@
         <module>../testRabbitmqConsumer</module>
         <module>../testRabbitmqProducer</module>
         <module>../test-RibbonFeign</module>
+        <module>../xc-service-search</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
