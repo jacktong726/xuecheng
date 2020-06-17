@@ -1,15 +1,13 @@
 package com.xuecheng.manage_course.service;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.cms.response.CmsPostPageResult;
-import com.xuecheng.framework.domain.course.CourseBase;
-import com.xuecheng.framework.domain.course.CourseMarket;
-import com.xuecheng.framework.domain.course.CoursePic;
-import com.xuecheng.framework.domain.course.Teachplan;
+import com.xuecheng.framework.domain.course.*;
 import com.xuecheng.framework.domain.course.ext.CourseInfo;
 import com.xuecheng.framework.domain.course.ext.CourseView;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
@@ -32,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +54,9 @@ public class CourseService {
 
     @Autowired
     CoursePicRepository coursePicRepository;
+
+    @Autowired
+    CoursePubRepository coursePubRepository;
 
     @Autowired
     CmsPageClient cmsPageClient;
@@ -307,8 +309,59 @@ public class CourseService {
             throw new CustomException(CommonCode.FAIL);
         }
         this.changePublishStatus(courseId,"202002");
+        //保存到couserPub表中, 以便logstash同步同elasticSearch
+        //需要打用F:\logstash-6.2.1\bin, 打開cmd輸入以下命令來開啟服務端:
+        //logstash.bat -f ..\config\mysql.conf
+        saveCoursePub(courseId);
+
         String pageUrl = cmsPostPageResult.getPageUrl();
         return new CoursePublishResult(CommonCode.SUCCESS,pageUrl);
+
+    }
+
+    private void saveCoursePub(String courseId) {
+        //創建coursePub pojo
+        CoursePub coursePubNew=createCoursePub(courseId);
+        if (coursePubNew==null){
+            throw new CustomException(CourseCode.COURSE_COURSEPUBISNULL);
+        }
+        Optional<CoursePub> optionalCoursePub = coursePubRepository.findById(courseId);
+        if (optionalCoursePub.isPresent()){
+            CoursePub coursePubOld = optionalCoursePub.get();
+            BeanUtils.copyProperties(coursePubNew,coursePubOld);
+            coursePubRepository.save(coursePubOld);
+        }
+        coursePubRepository.save(coursePubNew);
+
+    }
+
+    private CoursePub createCoursePub(String courseId) {
+        CoursePub coursePub = new CoursePub();
+        Optional<CourseBase> optionalCourseBase = courseBaseRepository.findById(courseId);
+        if (optionalCourseBase.isPresent()){
+            CourseBase courseBase = optionalCourseBase.get();
+            BeanUtils.copyProperties(courseBase,coursePub);
+        }
+        Optional<CoursePic> optionalCoursePic = coursePicRepository.findById(courseId);
+        if (optionalCoursePic.isPresent()){
+            CoursePic coursePic = optionalCoursePic.get();
+            BeanUtils.copyProperties(coursePic,coursePub);
+        }
+        Optional<CourseMarket> optionalCourseMarket = courseMarketRepository.findById(courseId);
+        if (optionalCourseMarket.isPresent()){
+            CourseMarket courseMarket = optionalCourseMarket.get();
+            BeanUtils.copyProperties(courseMarket,coursePub);
+        }
+        TeachplanNode teachPlanList = this.findTeachPlanList(courseId);
+        String teachPlan = JSON.toJSONString(teachPlanList);
+        coursePub.setTeachplan(teachPlan);
+
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+        coursePub.setTimestamp(date);
+        coursePub.setPubTime(simpleDateFormat.format(date));
+        return coursePub;
+
 
     }
 
@@ -322,4 +375,6 @@ public class CourseService {
         }
         return null;
     }
+
+
 }

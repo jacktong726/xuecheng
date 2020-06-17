@@ -1,5 +1,5 @@
 server:
-  port: 31000
+  port: 31009
 spring:
   application:
     name: xc-service-manage-cms-client

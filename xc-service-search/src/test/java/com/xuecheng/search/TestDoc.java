@@ -163,7 +163,7 @@ public class TestDoc {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());   //加入查詢條件-->matchAllQuery() 全部
         searchSourceBuilder.fetchSource(new String[]{"name", "studymodel", "price", "timestamp", "description"}, new String[]{}); //要返回什麼欄位
-        searchSourceBuilder.from(0);//第幾頁
+        searchSourceBuilder.from(0);//第幾個開始
         searchSourceBuilder.size(2);//每頁幾個
         searchRequest.source(searchSourceBuilder);
 
