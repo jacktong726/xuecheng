@@ -14,10 +14,11 @@
         <module name="xc-service-api" />
         <module name="xc-service-manage-cms-client" />
         <module name="xc-service-base-filesystem" />
-        <module name="test-RibbonFeign" />
+        <module name="test-fastDSF" />
         <module name="xc-framework-common" />
         <module name="xc-govern-center" />
-        <module name="test-fastDSF" />
+        <module name="test-RibbonFeign" />
+        <module name="xc-service-manage-media" />
         <module name="testRabbitmqConsumer" />
         <module name="xc-service-manage-cms" />
         <module name="xc-service-search" />
@@ -44,6 +45,7 @@
       <module name="xc-service-manage-cms" options="-parameters" />
       <module name="xc-service-manage-cms-client" options="-parameters" />
       <module name="xc-service-manage-course" options="-parameters" />
+      <module name="xc-service-manage-media" options="-parameters" />
       <module name="xc-service-search" options="-parameters" />
       <module name="xcservicemanagecmsclient" options="-parameters" />
     </option>

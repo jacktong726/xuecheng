@@ -19,6 +19,7 @@
         <module>../testRabbitmqProducer</module>
         <module>../test-RibbonFeign</module>
         <module>../xc-service-search</module>
+        <module>../xc-service-manage-media</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

@@ -27,10 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class EsCourseService {
@@ -56,7 +53,7 @@ public class EsCourseService {
         searchSourceBuilder.fetchSource(source_fields,new String[]{});
         //分頁
         if (page<=0){page=1;}
-        if (size<=8){size=8;}
+        if (size<=0){size=4;}
         searchSourceBuilder.from((page-1)*size);//第幾個開始
         searchSourceBuilder.size(size);//每頁幾個
 
@@ -70,9 +67,10 @@ public class EsCourseService {
 
         searchRequest.source(searchSourceBuilder);
 
-        List<CoursePub> list = getSearchResult(searchRequest);
+        Map searchResultMap = getSearchResult(searchRequest);
+        List<CoursePub> list = (List<CoursePub>) searchResultMap.get("list");
         QueryResult<CoursePub> queryResult = new QueryResult<>();
-        queryResult.setTotal(list.size());
+        queryResult.setTotal((long)searchResultMap.get("total"));
         queryResult.setList(list);
         return new QueryResponseResult(CommonCode.SUCCESS,queryResult);
     }
@@ -112,8 +110,9 @@ public class EsCourseService {
     }
 
 
-    public List<CoursePub> getSearchResult(SearchRequest searchRequest){
+    public Map getSearchResult(SearchRequest searchRequest){
         SearchResponse searchResponse = null;
+        Map<String,Object> map=new HashMap();
         List<CoursePub> list=new ArrayList<>();
         try {
             searchResponse = client.search(searchRequest);
@@ -124,6 +123,8 @@ public class EsCourseService {
                 CoursePub coursePub = new CoursePub();
                 //取出source
                 Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+                //取出id
+                coursePub.setId((String) sourceAsMap.get("id"));
                 //取出名称
                 String name = (String) sourceAsMap.get("name");
                 Map<String, HighlightField> highlightFields = hit.getHighlightFields(); //取出高亮字段内容
@@ -151,9 +152,11 @@ public class EsCourseService {
                 }
                 list.add(coursePub);
             }
+            map.put("list",list);
+            map.put("total",totalHits);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return list;
+        return map;
     }
 }
