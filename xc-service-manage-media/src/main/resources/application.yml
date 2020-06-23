@@ -7,8 +7,17 @@ spring:
     mongodb:
       uri:  mongodb://root:123456@centos7.jacktong726.com:27017
       database: xc_media
+  #rabbitmq配置
+  rabbitmq:
+    host: centos7.jacktong726.com
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
 xc-service-manage-media:
   upload-location: F:/javalesson/javahw/xcedu/video
+  mq:
+    routingkey-media-video: routingkey_media_video
 eureka:
   client:
     registerWithEureka: true #服务注册开关

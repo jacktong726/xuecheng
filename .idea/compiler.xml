@@ -23,6 +23,7 @@
         <module name="xc-service-manage-cms" />
         <module name="xc-service-search" />
         <module name="testRabbitmqProducer" />
+        <module name="xc-service-manage-media-processor" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -46,6 +47,7 @@
       <module name="xc-service-manage-cms-client" options="-parameters" />
       <module name="xc-service-manage-course" options="-parameters" />
       <module name="xc-service-manage-media" options="-parameters" />
+      <module name="xc-service-manage-media-processor" options="-parameters" />
       <module name="xc-service-search" options="-parameters" />
       <module name="xcservicemanagecmsclient" options="-parameters" />
     </option>
