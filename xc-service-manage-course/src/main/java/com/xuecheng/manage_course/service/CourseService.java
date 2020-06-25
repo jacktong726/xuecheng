@@ -59,6 +59,9 @@ public class CourseService {
     CoursePubRepository coursePubRepository;
 
     @Autowired
+    TeachPlanMediaRepository teachPlanMediaRepository;
+
+    @Autowired
     CmsPageClient cmsPageClient;
 
     //讀取配置文件中的course-publish參數
@@ -376,5 +379,33 @@ public class CourseService {
         return null;
     }
 
+    @Transactional
+    public ResponseResult savemedia(TeachplanMedia teachplanMedia) {
+        if (teachplanMedia==null||StringUtils.isEmpty(teachplanMedia.getMediaId())){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        String teachplanId = teachplanMedia.getTeachplanId();
+        //只允許3級節點teachplan選擇視頻
+        Optional<Teachplan> teachplanOptional = teachPlanRepository.findById(teachplanId);
+        if (!teachplanOptional.isPresent()){
+            throw new CustomException(CourseCode.COURSE_MEDIA_TEACHPLAN_ISNULL);
+        }
+        Teachplan teachplan = teachplanOptional.get();
+        String grade = teachplan.getGrade();
+        if (!"3".equals(grade)){
+            throw new CustomException(CourseCode.COURSE_MEDIA_TEACHPLAN_GRADEERROR);
+        }
 
+        Optional<TeachplanMedia> teachplanMediaOptional = teachPlanMediaRepository.findById(teachplanId);
+        if (teachplanMediaOptional.isPresent()){
+            TeachplanMedia teachplanMediaOld = teachplanMediaOptional.get();
+            teachplanMediaOld.setMediaId(teachplanMedia.getMediaId());
+            teachplanMediaOld.setMediaFileOriginalName(teachplanMedia.getMediaFileOriginalName());
+            teachplanMediaOld.setMediaUrl(teachplanMedia.getMediaUrl());
+            teachPlanMediaRepository.save(teachplanMediaOld);
+        }else {
+            teachPlanMediaRepository.save(teachplanMedia);
+        }
+        return new ResponseResult(CommonCode.SUCCESS);
+    }
 }

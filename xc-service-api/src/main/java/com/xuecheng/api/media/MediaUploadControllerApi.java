@@ -28,4 +28,6 @@ public interface MediaUploadControllerApi {
                                       Long fileSize,
                                       String mimetype,
                                       String fileExt);
+    @ApiOperation("轉換文件格式")
+    public ResponseResult process(String fileId);
 }
