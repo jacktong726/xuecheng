@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +61,9 @@ public class CourseService {
 
     @Autowired
     TeachPlanMediaRepository teachPlanMediaRepository;
+
+    @Autowired
+    TeachPlanMediaPubRepository teachPlanMediaPubRepository;
 
     @Autowired
     CmsPageClient cmsPageClient;
@@ -315,11 +319,31 @@ public class CourseService {
         //保存到couserPub表中, 以便logstash同步同elasticSearch
         //需要打用F:\logstash-6.2.1\bin, 打開cmd輸入以下命令來開啟服務端:
         //logstash.bat -f ..\config\mysql.conf
-        saveCoursePub(courseId);
+        this.saveCoursePub(courseId);
+        this.saveTeachplanMediaPub(courseId);
 
         String pageUrl = cmsPostPageResult.getPageUrl();
         return new CoursePublishResult(CommonCode.SUCCESS,pageUrl);
 
+    }
+    //通過courseId把teachplanMedia表的資料複制到teachplanMediaPub表中, 另外使用logstash複制一份到es中
+    private void saveTeachplanMediaPub(String courseId){
+        //先按courseId刪除TeachplanMediaPub表內的資料, 再按courseId查詢TeachplanMedia的資料, 寫入TeachplanMediaPub表
+        //再使用logstach, 同步到elasticSearch中
+        if (StringUtils.isEmpty(courseId)){
+            throw new CustomException(CommonCode.INVALIDPARAM);
+        }
+        teachPlanMediaPubRepository.deleteByCourseId(courseId);
+
+        List<TeachplanMedia> teachplanMediaListList = teachPlanMediaRepository.findByCourseId(courseId);
+        List<TeachplanMediaPub> teachplanMediaPubList=new ArrayList<>();
+        for (TeachplanMedia teachplanMedia : teachplanMediaListList) {
+            TeachplanMediaPub teachplanMediaPub = new TeachplanMediaPub();
+            BeanUtils.copyProperties(teachplanMedia,teachplanMediaPub);
+            teachplanMediaPub.setTimestamp(new Date());
+            teachplanMediaPubList.add(teachplanMediaPub);
+        }
+        teachPlanMediaPubRepository.saveAll(teachplanMediaPubList);
     }
 
     private void saveCoursePub(String courseId) {
