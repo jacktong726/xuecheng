@@ -1,10 +1,12 @@
 package com.xuecheng.auth.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.xuecheng.api.auth.AuthControllerApi;
 import com.xuecheng.auth.service.AuthService;
 import com.xuecheng.framework.domain.ucenter.ext.AuthToken;
 import com.xuecheng.framework.domain.ucenter.request.LoginRequest;
 import com.xuecheng.framework.domain.ucenter.response.AuthCode;
+import com.xuecheng.framework.domain.ucenter.response.JwtResult;
 import com.xuecheng.framework.domain.ucenter.response.LoginResult;
 import com.xuecheng.framework.exception.CustomException;
 import com.xuecheng.framework.model.response.CommonCode;
@@ -13,6 +15,7 @@ import com.xuecheng.framework.utils.CookieUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +23,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -77,11 +82,40 @@ public class AuthController implements AuthControllerApi {
         CookieUtil.addCookie(response,cookieDomain,"/","uid",token,cookieMaxAge,false);
     }
 
+    //由cookies中取得login時存入的uid(即jti), 由service向redis請求token, 返回到前端
+    @Override
+    @GetMapping("/userjwt")
+    public JwtResult userjwt() {
+        String uid = this.getUidFromCookies();
+        AuthToken authToken=authService.getUserJwt(uid);
+        if (authToken==null){
+            return new JwtResult(CommonCode.FAIL,null);
+        }
+        String jsonString = JSON.toJSONString(authToken);
+        return new JwtResult(CommonCode.SUCCESS,jsonString);
+    }
+
+    //用戶logout的話, 會清空cookies中的uid和刪除redia中的user_token
     @Override
     @PostMapping("/userlogout")
     public ResponseResult logout() {
-        HttpServletResponse response = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
-        CookieUtil.addCookie(response,cookieDomain,"/","uid",null,0,true);
+        String uid = this.getUidFromCookies();
+        authService.delToken(uid);
+        this.removeUidFromCookies();
         return new ResponseResult(CommonCode.SUCCESS);
+    }
+
+    private String getUidFromCookies(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Map<String, String> map = CookieUtil.readCookie(request, "uid");
+        if (map==null || map.get("uid")==null){
+            return null;
+        }
+        return map.get("uid");
+    }
+
+    private void removeUidFromCookies(){
+        HttpServletResponse response = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
+        CookieUtil.addCookie(response,cookieDomain,"/","uid",null,0,false);
     }
 }

@@ -2,6 +2,7 @@ package com.xuecheng.ucenter.service;
 
 import com.xuecheng.framework.domain.ucenter.XcCompanyUser;
 import com.xuecheng.framework.domain.ucenter.XcUser;
+import com.xuecheng.framework.domain.ucenter.ext.AuthToken;
 import com.xuecheng.framework.domain.ucenter.ext.XcUserExt;
 import com.xuecheng.framework.domain.ucenter.response.UcenterCode;
 import com.xuecheng.framework.exception.CustomException;
@@ -30,7 +31,7 @@ public class UcenterService {
         }
         XcUser xcUser = xcUserRepository.findByUsername(username);
         if (xcUser==null){
-            throw new CustomException(UcenterCode.UCENTER_ACCOUNT_NOTEXISTS);
+            return null;
         }
         XcUserExt xcUserExt = new XcUserExt();
         BeanUtils.copyProperties(xcUser,xcUserExt);
@@ -42,4 +43,5 @@ public class UcenterService {
         }
         return xcUserExt;
     }
+
 }

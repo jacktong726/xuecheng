@@ -50,14 +50,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //        userext.setPassword(new BCryptPasswordEncoder().encode("123"));
         XcUserExt userext = ucenterClient.getUserext(username);
 
-        userext.setPermissions(new ArrayList<XcMenu>());
         if(userext == null){
             return null;
         }
+        userext.setPermissions(new ArrayList<XcMenu>());
         //取出正确密码（hash值）
         String password = userext.getPassword();
-        //这里暂时使用静态密码
-//       String password ="123";
         //用户权限，这里暂时使用静态数据，最终会从数据库读取
         //从数据库获取权限
         List<XcMenu> permissions = userext.getPermissions();

@@ -5,6 +5,7 @@ import com.xuecheng.framework.client.XcServiceList;
 import com.xuecheng.framework.domain.ucenter.ext.AuthToken;
 import com.xuecheng.framework.domain.ucenter.response.AuthCode;
 import com.xuecheng.framework.exception.CustomException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
@@ -81,6 +82,15 @@ public class AuthService {
                 map.get("access_token") == null ||
                 map.get("refresh_token") == null ||
                 map.get("jti") == null){
+            //获取spring security返回的错误信息
+            String error_description = (String) map.get("error_description");
+            if(StringUtils.isNotEmpty(error_description)){
+                if(error_description.contains("Bad credentials")){
+                   throw new CustomException(AuthCode.AUTH_CREDENTIAL_ERROR);
+                }else if(error_description.contains("UserDetailsService returned null")){
+                    throw new CustomException(AuthCode.AUTH_ACCOUNT_NOTEXISTS);
+                }
+            }
             throw new CustomException(AuthCode.AUTH_LOGIN_APPLYTOKEN_FAIL);
         }
         AuthToken authToken = new AuthToken();
@@ -103,5 +113,20 @@ public class AuthService {
         stringRedisTemplate.opsForValue().set("user_token:" +access_token,authTokenString,tokenValiditySeconds, TimeUnit.SECONDS);
         Long expire = stringRedisTemplate.getExpire("user_token:"+access_token);  //如果redis中找不到這個record, 就會返回負數
         return expire>0;
+    }
+
+    public AuthToken getUserJwt(String uid) {
+        String user_token = "user_token:" + uid;
+        String tokenString = stringRedisTemplate.opsForValue().get(user_token);
+        if (StringUtils.isNotEmpty(tokenString)){
+            AuthToken authToken = JSON.parseObject(tokenString, AuthToken.class);
+            return authToken;
+        }
+        return null;
+    }
+
+    public void delToken(String uid) {
+        String user_token = "user_token:" + uid;
+        stringRedisTemplate.delete(user_token);
     }
 }
