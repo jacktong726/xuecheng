@@ -91,8 +91,9 @@ public class AuthController implements AuthControllerApi {
         if (authToken==null){
             return new JwtResult(CommonCode.FAIL,null);
         }
-        String jsonString = JSON.toJSONString(authToken);
-        return new JwtResult(CommonCode.SUCCESS,jsonString);
+        //String jsonString = JSON.toJSONString(authToken);
+        //return new JwtResult(CommonCode.SUCCESS,jsonString);
+        return new JwtResult(CommonCode.SUCCESS,authToken.getJwt_token());
     }
 
     //用戶logout的話, 會清空cookies中的uid和刪除redia中的user_token

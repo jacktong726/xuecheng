@@ -143,7 +143,7 @@ public class CourseService {
 
     public QueryResponseResult findCoursePage(int page, int size,CourseListRequest courseListRequest){
         PageHelper.startPage(page,size);
-        Page<CourseInfo> courseListPage = courseMapper.findCourseListPage(null);
+        Page<CourseInfo> courseListPage = courseMapper.findCourseListPage(courseListRequest);
         QueryResult queryResult = new QueryResult<CourseInfo>();
         queryResult.setList(courseListPage.getResult());
         queryResult.setTotal(courseListPage.getTotal());

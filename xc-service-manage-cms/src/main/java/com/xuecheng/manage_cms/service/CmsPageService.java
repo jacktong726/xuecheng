@@ -22,7 +22,6 @@ import com.xuecheng.manage_cms.dao.CmsTemplateRepository;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -36,11 +35,16 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -74,6 +78,9 @@ public class CmsPageService {
     //消息中間件
     @Autowired
     RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    HttpServletRequest request;
 
     /**
      * 分頁查詢
@@ -273,8 +280,21 @@ public class CmsPageService {
             if (StringUtils.isEmpty(dataUrl)){
                 throw new CustomException(CmsCode.CMS_GENERATEHTML_DATAISNULL);
             }
-            ResponseEntity<Map> forEntity = restTemplate.getForEntity(dataUrl, Map.class);
-            return forEntity.getBody();
+            //ResponseEntity<Map> forEntity = restTemplate.getForEntity(dataUrl, Map.class);
+            //return forEntity.getBody();
+
+            //引入token身份認證後, restTemplate會訪問course模組, 所以要在header中攜帶token
+            String authorization = request.getHeader("Authorization");
+            MultiValueMap<String,String> header=new LinkedMultiValueMap<>();
+            header.add("Authorization",authorization);
+
+            MultiValueMap<String,String> body=new LinkedMultiValueMap<>();
+            //把body和header放到httpEntity中
+            HttpEntity<MultiValueMap<String, String>> httpEntity=new HttpEntity(body,header);
+
+            ResponseEntity<Map> responseEntity = restTemplate.exchange(dataUrl, HttpMethod.GET, httpEntity, Map.class);
+            Map map = responseEntity.getBody();
+            return map;
         }
         return null;
     }

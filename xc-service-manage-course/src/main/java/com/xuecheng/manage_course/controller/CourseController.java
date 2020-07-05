@@ -1,18 +1,23 @@
 package com.xuecheng.manage_course.controller;
 
 import com.xuecheng.api.course.CourseControllerApi;
-import com.xuecheng.framework.domain.cms.response.CmsPostPageResult;
 import com.xuecheng.framework.domain.course.*;
 import com.xuecheng.framework.domain.course.ext.CourseView;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
 import com.xuecheng.framework.domain.course.request.CourseListRequest;
 import com.xuecheng.framework.domain.course.response.CoursePublishResult;
+import com.xuecheng.framework.exception.CustomException;
 import com.xuecheng.framework.model.response.CommonCode;
 import com.xuecheng.framework.model.response.QueryResponseResult;
 import com.xuecheng.framework.model.response.ResponseResult;
+import com.xuecheng.framework.utils.XcOauth2Util;
 import com.xuecheng.manage_course.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/course")
@@ -21,7 +26,11 @@ public class CourseController implements CourseControllerApi {
     @Autowired
     CourseService courseService;
 
+    @Autowired
+    HttpServletRequest request;
+
     @Override
+    @PreAuthorize("hasAuthority('course_get_teachplanList')")   //方法授權(測試時userDetail中有寫入這個權限, 可以正常訪問)
     @GetMapping("/teachplan/list/{courseId}")
     public TeachplanNode findTeachPlanList(@PathVariable("courseId")String courseId) {
         return courseService.findTeachPlanList(courseId);
@@ -47,6 +56,7 @@ public class CourseController implements CourseControllerApi {
 
     @Override
     @GetMapping("/coursebase/{id}")
+    //@PreAuthorize("hasAuthority('course_get_coursebase')")  //方法授權(測試時userDetail中未有寫入這個權限, 不能訪問)
     public CourseBase findCourseBaseById(@PathVariable String id) {
         return courseService.findCourseBaseById(id);
     }
@@ -61,6 +71,23 @@ public class CourseController implements CourseControllerApi {
     public QueryResponseResult findCoursePage(@PathVariable("page") int page,
                                               @PathVariable("size") int size,
                                               @RequestParam(value = "companyId", required = false) CourseListRequest courseListRequest) {
+        //String companyId="1";
+        //ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        //HttpServletRequest request = servletRequestAttributes.getRequest();
+
+        //前端的請求都帶有authorization: Bearer token的請求頭
+        //解析token就可以得到帶有的companyId信息
+        XcOauth2Util xcOauth2Util = new XcOauth2Util();
+        XcOauth2Util.UserJwt userJwtFromHeader = xcOauth2Util.getUserJwtFromHeader(request);
+        if (userJwtFromHeader==null){
+            throw new CustomException(CommonCode.UNAUTHENTICATED);
+        }
+        String companyId = userJwtFromHeader.getCompanyId();
+
+        if (courseListRequest==null){
+            courseListRequest=new CourseListRequest();
+        }
+        courseListRequest.setCompanyId(companyId);
         return courseService.findCoursePage(page,size,courseListRequest);
     }
 

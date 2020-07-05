@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.nio.file.AccessDeniedException;
+
 /**
  * 使用 @ControllerAdvice + @ExceptionHandler 进行全局的controller异常处理，不用在 Controller 层进行 try-catch
  * 注意: 必須在com.xuecheng.manage_cms.ManageCmsApplication中掃描此包才能生效

@@ -14,9 +14,9 @@
         <module name="xc-framework-utils" />
         <module name="xc-service-api" />
         <module name="xc-service-manage-cms-client" />
+        <module name="testRabbitmqProducer" />
         <module name="xc-service-base-filesystem" />
-        <module name="test-fastDSF" />
-        <module name="xc-govern-gateway" />
+        <module name="xc-service-search" />
         <module name="xc-framework-common" />
         <module name="xc-service-learning" />
         <module name="xc-service-ucenter-auth" />
@@ -25,8 +25,8 @@
         <module name="xc-service-manage-media" />
         <module name="testRabbitmqConsumer" />
         <module name="xc-service-manage-cms" />
-        <module name="xc-service-search" />
-        <module name="testRabbitmqProducer" />
+        <module name="xc-govern-gateway" />
+        <module name="test-fastDSF" />
         <module name="xc-service-manage-media-processor" />
       </profile>
     </annotationProcessing>

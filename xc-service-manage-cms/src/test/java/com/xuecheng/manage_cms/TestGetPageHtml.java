@@ -16,7 +16,7 @@ public class TestGetPageHtml {
 
     @Test
     public void testGetPage(){
-        String pageHtml = cmsPageService.getPageHtml("5abefd525b05aa293098fca6");
-        System.out.println(pageHtml);
+        //String pageHtml = cmsPageService.getPageHtml("5abefd525b05aa293098fca6");
+        //System.out.println(pageHtml);
     }
 }
